@@ -1,10 +1,18 @@
 #!/usr/bin/python
-from Tkinter import *
 from PIL import Image, ImageTk
 import math
 import sys
 
+def abrir_imagen(nombre_imagen):
+    """
+    """
+    imagen = Image.open(nombre_imagen)
+    imagen = imagen.convert('RGB')
+    return imagen
+
 def convolucion(imagen_original, mascara):
+    """
+    """
     x, y = imagen_original.size
     pos = imagen_original.load()
     nueva_imagen = Image.new("RGB", (x,y))
@@ -20,15 +28,16 @@ def convolucion(imagen_original, mascara):
     nueva_imagen.save("mascara.png")
     return nueva_imagen
 
-
 def umbral(imagen_original):
+    """
+    """
     x, y = imagen_original.size
     imagen_umbral = Image.new("RGB", (x, y))
     pixeles = []
     for a in range(y):
         for b in range(x):
             color = imagen_original.getpixel((b,a))[0]
-            if color > 30:
+            if color > 20:
                 color = 255
             else:
                 color = 0
@@ -38,25 +47,30 @@ def umbral(imagen_original):
     imagen_umbral.save("imagen_umbral.png", quality=100)
     return imagen_umbral
 
-
-def hacer_gris(imagen_original):
-    """pone la foto en escala de grises
-    toma el valor maximo del rgb de cada pixel
+def normalizar(imagen_original):
+    """
     """
     x, y = imagen_original.size
-    imagen_gris = Image.new("RGB", (x,y))
+    imagen_normalizada = Image.new("RGB", (x, y))
     pixeles = []
     for a in range(y):
         for b in range(x):
-            r, g, b = imagen_original.getpixel((b, a))
-            rgb = (r, g, b)
-                #se elige el valor mas grande
-            maximo = max(rgb)
-            data = (maximo, maximo, maximo)
-            pixeles.append(data)
-    imagen_gris.putdata(pixeles)
-    imagen_gris.save("imagen_gris.png")
-    return imagen_gris
+            pix = imagen_original.getpixel((b, a))[0]
+            pixeles.append(pix)
+    maximo = max(pixeles) 
+    minimo = min(pixeles)
+    print maximo
+    print minimo
+    l = 256.0/(maximo - minimo)
+    pixeles = []
+    for a in range(y):
+        for b in range(x):
+            pix = imagen_original.getpixel((b, a))[0]
+            nuevo_pix = int(math.floor((pix-minimo)*l))
+            pixeles.append((nuevo_pix, nuevo_pix, nuevo_pix))
+    imagen_normalizada.putdata(pixeles)
+    imagen_normalizada.save("imagen_normalizada.png")
+    return imagen_normalizada
 
 def hacer_difusa(imagen_original):
     """funcion que se encarga de tomar de cada pixel los pixeles 
@@ -114,57 +128,21 @@ def hacer_difusa(imagen_original):
     imagen_difusa.save("imagen_difusa.png")
     return imagen_difusa
 
-def normalizar(imagen_original):
-    x, y = imagen_original.size
-    imagen_normalizada = Image.new("RGB", (x, y))
-    pixeles = []
-    for a in range(y):
-        for b in range(x):
-            pix = imagen_original.getpixel((b, a))[0]
-            pixeles.append(pix)
-    maximo = max(pixeles) 
-    minimo = min(pixeles)
-    print maximo
-    print minimo
-    l = 256.0/(maximo - minimo)
-    pixeles = []
-    for a in range(y):
-        for b in range(x):
-            pix = imagen_original.getpixel((b, a))[0]
-            nuevo_pix = int(math.floor((pix-minimo)*l))
-            pixeles.append((nuevo_pix, nuevo_pix, nuevo_pix))
-    imagen_normalizada.putdata(pixeles)
-    imagen_normalizada.save("imagen_normalizada.png")
-    return imagen_normalizada
-
-def main():
-    """funcion principal
+def hacer_gris(imagen_original):
+    """pone la foto en escala de grises
+    toma el valor maximo del rgb de cada pixel
     """
-    try:
-        imagen_path = sys.argv[1]
-        print imagen_path
-        imagen_original = Image.open(imagen_path)
-        imagen_original = imagen_original.convert('RGB')
-    except:
-        print "No seleccionaste una imagen"
-        return
-    nueva = hacer_gris(imagen_original)
-    nueva = normalizar(nueva)
-#    mascara1 = [[-1,0,1],[-2,0,2],[-1,0,1]]
-#    mascara2 = [[1,1,1],[0,0,0],[-1,-1,-1]]
-#    mascara3 = [[1,1,1],[-1,-2,1],[-1,-1,1]]
-    mascara4 = [[0,1,0],[1,-4,1],[0,1,0]]
-    nueva = convolucion(nueva, mascara4)
-    #nueva.save("mascara1.png")
-    #nueva = convolucion(nueva, mascara2)
-    #nueva.save("mascara2.png")
-    #nueva = convolucion(nueva, mascara3)
-    #nueva.save("mascara3.png")
-    #nueva = convolucion(nueva, mascara4)
-    nueva.save("mascara4.png")
-    nueva = hacer_difusa(nueva)
-    nueva = hacer_difusa(nueva)
-    nueva = umbral(nueva)
-
-if __name__ == "__main__":
-    main()
+    x, y = imagen_original.size
+    imagen_gris = Image.new("RGB", (x,y))
+    pixeles = []
+    for a in range(y):
+        for b in range(x):
+            r, g, b = imagen_original.getpixel((b, a))
+            rgb = (r, g, b)
+                #se elige el valor mas grande
+            maximo = max(rgb)
+            data = (maximo, maximo, maximo)
+            pixeles.append(data)
+    imagen_gris.putdata(pixeles)
+    imagen_gris.save("imagen_gris.png")
+    return imagen_gris
