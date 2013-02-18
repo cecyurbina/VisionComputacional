@@ -48,7 +48,6 @@ class Aplicacion:
         """
         funcion que regresa la foto al estado inicial
         """
-        print "asas"
         self.imagen_actual = self.imagen_original
         self.actualizar_imagen()
 
@@ -62,13 +61,14 @@ class Aplicacion:
         """colorea la figura
         """
         self.imagen_actual, colores = encuentra_formas(self.imagen_actual)
-        print colores
         self.actualizar_imagen()
         im = Image.open("imagen_nueva.png")
         draw = ImageDraw.Draw(im)
         for i in range(len(colores)):
             if colores[i][2] > .1:
-                draw.text((colores[i][1]), str(i))
+                draw.ellipse((colores[i][1][0]-2, colores[i][1][1]-2, colores[i][1][0]+2, colores[i][1][1]+2), fill=(0,0,0))
+                draw.text((colores[i][1]), str(i), fill=(0,0,0))
+                print "ID  %s    Porcentaje  %s" %(i, colores[i][2])
         self.imagen_actual = im
         self.actualizar_imagen()
         
@@ -138,8 +138,9 @@ def encuentra_formas(imagen):
     i = porcentaje.index(figura_mayor)
     color_mayor = colores[i][0]
     print color_mayor
+    imagen.save('antes.png', 'png')
     identifica_fondo(imagen, color_mayor)
-    imagen.save('resultado', 'png')
+    imagen.save('resultado.png', 'png')
     return imagen, colores
 
 def identifica_fondo(imagen, color_max): 
@@ -149,7 +150,7 @@ def identifica_fondo(imagen, color_max):
     for a in range(x):
         for b in range(y):
             if pixeles[a, b] == color_max:
-                color = (80,80,80)
+                color = (210,210,210)
                 imagen, masa, n = bfs(imagen, (a, b), color)
                 return imagen
 
