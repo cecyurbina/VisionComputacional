@@ -71,6 +71,7 @@ class Aplicacion:
                 print "ID  %s    Porcentaje  %s" %(i, colores[i][2])
         self.imagen_actual = im
         self.actualizar_imagen()
+
         
 def bfs(imagen, origen, color):
     """colorea todo el objeto recibe como parametros el 
@@ -84,6 +85,7 @@ def bfs(imagen, origen, color):
     alto, ancho = imagen.size
     cola.append(origen)
     original = pixeles[origen]
+    todos_pixeles = []
     while len(cola) > 0:
         (x, y) = cola.pop(0)
         actual = pixeles[x, y]
@@ -101,8 +103,9 @@ def bfs(imagen, origen, color):
                             imagen.putpixel((pix_x, pix_y), color)
                             cont += 1
                             cola.append((pix_x, pix_y))
+                            todos_pixeles.append((pix_x, pix_y))
     imagen.save('algo', 'png')
-    return imagen, cont, masa
+    return imagen, cont, masa, todos_pixeles
 
 def encuentra_formas(imagen):
     """cambia el color de cada objeto en
@@ -113,14 +116,16 @@ def encuentra_formas(imagen):
     pixeles = imagen.load()
     colores = []
     porcentaje = []
+    contornos = []
     for i in range(alto):
         for j in range(ancho):
-            if pixeles[i,j] == (0,0,0):
+            if pixeles[i,j] == (255,255,255):
                 r = int(random.random()*250)
                 g = int(random.random()*250)
                 b = int(random.random()*250)
                 nuevo_color = (r,g,b)
-                imagen, cont, masa = bfs(imagen, (i,j), nuevo_color)
+                imagen, cont, masa, todos_pixeles = bfs(imagen, (i,j), nuevo_color)
+                contornos.append(todos_pixeles)
                 print "CAMBIA"
                 total_x = 0
                 total_y = 0
@@ -141,6 +146,23 @@ def encuentra_formas(imagen):
     imagen.save('antes.png', 'png')
     identifica_fondo(imagen, color_mayor)
     imagen.save('resultado.png', 'png')
+    cont = []
+    for i in range(len(contornos)):
+        hull = filtros.aplicar_jarvi(contornos[i])
+        cont.append(hull)
+    print hull
+    im = Image.open("resultado.png")
+    draw = ImageDraw.Draw(im)
+    for i in range(len(cont)):
+        for j in range(len(cont[i])):
+            try:
+                linea = (cont[i][j][0],cont[i][j][1],cont[i][j+1][0],cont[i][j+1][1])
+            except:
+                break
+            draw.ellipse((cont[i][j][0], cont[i][j][1], 10,10), fill=(255,255,255))
+            draw.line(linea, fill="green", width=2)
+
+    im.save("hull.png")
     return imagen, colores
 
 def identifica_fondo(imagen, color_max): 
@@ -151,7 +173,7 @@ def identifica_fondo(imagen, color_max):
         for b in range(y):
             if pixeles[a, b] == color_max:
                 color = (210,210,210)
-                imagen, masa, n = bfs(imagen, (a, b), color)
+                imagen, masa, n, todos_pixeles = bfs(imagen, (a, b), color)
                 return imagen
 
 def main():

@@ -146,3 +146,29 @@ def hacer_gris(imagen_original):
     imagen_gris.putdata(pixeles)
     imagen_gris.save("imagen_gris.png")
     return imagen_gris
+
+def aplicar_jarvi(pos):
+    """envuelve un objeto 
+    recibe coordenadas y regresa las coordenadas para
+    hacer el objeto convexo
+    """
+    coor_y = []
+    coor_x = []
+
+    for i in range(len(pos)):
+        coor_x.append(pos[i][0])
+        coor_y.append(pos[i][1])
+    p0 = min(pos)
+    hull = [p0]
+    cont = 0
+    while True:
+        ult = pos[0]
+        for i in range(len(pos) - 1):
+            direccion = cmp(0, (hull[cont][0] - pos[i][0])*(ult[1] - pos[i][1]) - (ult[0] - pos[i][0])*(hull[cont][1] -pos[i][1]))
+            if ult == hull[cont] or direccion == -1:
+                ult = pos[i]
+        cont += 1
+        hull.append(ult)
+        if ult == hull[0]:
+            break
+    return hull
